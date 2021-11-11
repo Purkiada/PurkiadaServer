@@ -1,0 +1,25 @@
+springdoc.swagger-ui.path: /api/docs
+spring:
+  security:    
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://id.matejbucek.cz/auth/realms/Purkiada
+          jwk-set-uri: https://id.matejbucek.cz/auth/realms/Purkiada/protocol/openid-connect/certs
+      client:
+        provider:
+          keycloak:
+            issuer-uri: https://id.matejbucek.cz/auth/realms/Purkiada
+            user-name-attribute: preferred_username
+        registration:
+          keycloak:
+            client-id: ${OAUTH_CLIENT_ID:backend}
+            client-secret: ${OAUTH_CLIENT_SECRET}
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/purkiada?serverTimezone=Europe/Prague
+    password: ${MYSQL_PASSWORD}
+    username: ${MYSQL_USERNAME:purkiada}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
