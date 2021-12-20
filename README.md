@@ -18,7 +18,7 @@ Pro změnu OIDC providera nestačí pouze změnit hodnoty v konfiguraci, ale mus
 ```bash
 mvn clean package -Dmaven.test.skip=true
 docker build -t registry.matejbucek.cz/purkiada/purkiada-server .
-docker push
+docker push registry.matejbucek.cz/purkiada/purkiada-server
 ```
 
 ## Docker
