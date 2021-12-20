@@ -2,17 +2,17 @@
 Toto je repozitář pro hlavní API systému Purkiáda.
 
 ## Dokumentace API
-Dokumentaci můžete najít vždy na endpointu  _/docs_ , pokud není změněno v  _application.yaml_ .
+Dokumentaci můžete najít vždy na endpointu  _/docs_ , pokud není změněno v  _application.yaml_.
 
 ## Konfigurace
-Veškerá konfigurace systému se dá provádět pomocí environmentálních proměnných a nebo přímo v souboru  _application.yaml_ .
+Veškerá konfigurace systému se dá provádět pomocí environmentálních proměnných a nebo přímo v souboru  _application.yaml_.
 
 ## Autentikace a Autorizace
 Veškerá autentikace a autorizace se řeší přes protokol OpenID Connect (OIDC).
 
 Momentálně využíváme self-hosted Keycloak instanci.
 
-Pro změnu OIDC providera nestačí pouze změnit hodnoty v konfiguraci, ale musí se také vytvořit nová implementace interfacu _AuthService_ .
+Pro změnu OIDC providera nestačí pouze změnit hodnoty v konfiguraci, ale musí se také vytvořit nová implementace interfacu _AuthService_.
 
 ## Build
 ```bash
