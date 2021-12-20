@@ -1,17 +1,22 @@
 package cz.mbucek.purkiadaserver.controllers;
 
-import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cz.mbucek.purkiadaserver.utilities.ApiInfo;
+
 @RestController
-@RequestMapping(path = "/v1")
+@RequestMapping(path = "")
 public class MainController {
 	
+	@Autowired
+	private ApiInfo apiInfo;
+	
 	@GetMapping
-	public Map<String, Object> getInfo(){
-		return null;
+	public ApiInfo getInfo(){
+		return apiInfo;
 	}
 }

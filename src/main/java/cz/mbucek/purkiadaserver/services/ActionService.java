@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.web.util.HtmlUtils;
 import com.querydsl.core.types.Predicate;
 
 import cz.mbucek.purkiadaserver.dtos.ActionDTO;
+import cz.mbucek.purkiadaserver.dtos.PublicUserDTO;
 import cz.mbucek.purkiadaserver.entities.Action;
 import cz.mbucek.purkiadaserver.entities.ActionSubmit;
 import cz.mbucek.purkiadaserver.entities.QAction;
@@ -20,14 +22,21 @@ import cz.mbucek.purkiadaserver.entities.User;
 import cz.mbucek.purkiadaserver.entities.enums.ActionStatus;
 import cz.mbucek.purkiadaserver.repositories.ActionRepository;
 import cz.mbucek.purkiadaserver.repositories.ActionSubmitRepository;
+import cz.mbucek.purkiadaserver.utilities.exceptions.Asserts;
 import cz.mbucek.purkiadaserver.utilities.exceptions.InternalServerErrorException;
+import cz.mbucek.purkiadaserver.utilities.exceptions.NotFoundException;
 
 @Service
 public class ActionService {
+
 	@Autowired
 	private ActionRepository actionRepository;
+
 	@Autowired
 	private ActionSubmitRepository actionSubmitRepository;
+
+	@Autowired
+	private AuthService authService;
 
 	public Action createAction(ActionDTO actionDTO) {
 		Action action = new Action(
@@ -74,7 +83,7 @@ public class ActionService {
 		Predicate predicate = QAction.action.hidden.eq(false);
 		return actionRepository.findAll(predicate, pageable).toList();
 	}
-	
+
 	public List<Action> getActionsByUser(Pageable pageable, User user){
 		return (user.hasRole("admin"))? getActions(pageable) : getPublicActions(pageable);
 	}
@@ -131,5 +140,27 @@ public class ActionService {
 
 	public Optional<Action> getActionByIdAndUser(Long actionId, User user) {
 		return (user.hasRole("admin"))? getActionById(actionId) : getActionByIdAndPublic(actionId);
+	}
+
+	public List<ActionSubmit> getSubmitsByAction(Action action){
+		var submits = action.getSubmits();
+		submits.forEach(submit -> {
+			try {
+				UserRepresentation user = authService.getUserById(submit.getUser().getUserId());
+				submit.setPublicUser(new PublicUserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName()));
+			} catch (Exception e) {e.printStackTrace();}
+		});
+		return submits.stream().toList();
+	}
+
+	public Optional<ActionSubmit> getActionSubmitByActionAndId(Action action, Long submitId) {
+		Predicate predicate = QActionSubmit.actionSubmit.action.eq(action).and(QActionSubmit.actionSubmit.id.eq(submitId));
+		return actionSubmitRepository.findOne(predicate);
+	}
+	
+	public ActionSubmit deleteActionSubmit(ActionSubmit submit) {
+		Asserts.notNull(submit, new InternalServerErrorException());
+		actionSubmitRepository.delete(submit);
+		return submit;
 	}
 }

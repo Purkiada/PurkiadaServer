@@ -4,7 +4,7 @@ import java.time.ZonedDateTime;
 
 import javax.validation.constraints.NotNull;
 
-public record ActionDTO(
+public record ActionDTO (
 						@NotNull String name, 
 						@NotNull String subName, 
 						@NotNull String description, 

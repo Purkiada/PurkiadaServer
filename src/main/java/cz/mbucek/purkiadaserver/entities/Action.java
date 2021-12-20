@@ -84,7 +84,9 @@ public class Action {
 	
 	@JsonView(Public.class)
 	public Integer freeSpace() {
-		return maxUsers - submits.size();
+		if(submits != null)
+			return maxUsers - submits.size();
+		return null;
 	}
 
 	@JsonIgnore

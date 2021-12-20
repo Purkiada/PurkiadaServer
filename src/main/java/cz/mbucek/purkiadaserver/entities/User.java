@@ -39,7 +39,6 @@ public class User {
 	
 	public String getUserId() 
 	{
-		//System.out.println(claims);
 		return getClaimAsString(JwtClaimNames.SUB);
 	}
 	

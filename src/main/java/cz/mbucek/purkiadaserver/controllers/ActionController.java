@@ -1,5 +1,7 @@
 package cz.mbucek.purkiadaserver.controllers;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,7 +91,6 @@ public class ActionController {
 	public Action createAction(
 			@Valid @RequestBody ActionDTO action
 			) {
-		System.out.println(action);
 		return actionService.createAction(action);
 	}
 
@@ -114,7 +115,7 @@ public class ActionController {
 		return actionService.deleteAction(action.get());
 	}
 
-	@GetMapping("/{actionId}/submit")
+	@GetMapping("/{actionId}/submitted")
 	@JsonView(Public.class)
 	public ActionSubmit isSubmittedForAction(
 			@PathVariable Long actionId
@@ -125,7 +126,30 @@ public class ActionController {
 		Asserts.notEmpty(submitted, new NotFoundException());
 		return submitted.get();
 	}
-	
+
+	@GetMapping("/{actionId}/submit")
+	@JsonView(Extended.class)
+	public List<ActionSubmit> getActionSubmits(
+			@PathVariable Long actionId
+			){
+		var action = actionService.getActionById(actionId);
+		Asserts.notEmpty(action, new NotFoundException());
+		return actionService.getSubmitsByAction(action.get());
+	}
+
+	@DeleteMapping("/{actionId}/submit/{submitId}")
+	@JsonView(Extended.class)
+	public ActionSubmit deleteActionSubmit(
+			@PathVariable Long actionId,
+			@PathVariable Long submitId
+			) {
+		var action = actionService.getActionById(actionId);
+		Asserts.notEmpty(action, new NotFoundException());
+		var submit = actionService.getActionSubmitByActionAndId(action.get(), submitId);
+		Asserts.notEmpty(submit, new NotFoundException());
+		return actionService.deleteActionSubmit(submit.get());
+	}
+
 	@PutMapping("/{actionId}/submit")
 	@JsonView(Public.class)
 	public MappingJacksonValue submitForAction(

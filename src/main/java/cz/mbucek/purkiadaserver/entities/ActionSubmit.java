@@ -1,6 +1,14 @@
 package cz.mbucek.purkiadaserver.entities;
 
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonView;
+
+import cz.mbucek.purkiadaserver.dtos.PublicUserDTO;
+import cz.mbucek.purkiadaserver.utilities.View.Extended;
+import cz.mbucek.purkiadaserver.utilities.View.Public;
+
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,6 +22,7 @@ import javax.persistence.ManyToOne;
 public class ActionSubmit {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
+	@JsonView(Public.class)
 	private Long id;
 	@ManyToOne
 	@JoinColumn(name = "action_id")
@@ -21,7 +30,18 @@ public class ActionSubmit {
 	@Convert(converter = UserConverter.class)
 	@JoinColumn(name = "user_id")
 	private User user;
+	@Transient
+	@JsonView(Extended.class)
+	private PublicUserDTO publicUser;
 	
+	public PublicUserDTO getPublicUser() {
+		return publicUser;
+	}
+
+	public void setPublicUser(PublicUserDTO publicUser) {
+		this.publicUser = publicUser;
+	}
+
 	public ActionSubmit() {
 		
 	}

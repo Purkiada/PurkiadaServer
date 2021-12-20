@@ -1,4 +1,16 @@
-springdoc.swagger-ui.path: /api/docs
+springdoc.swagger-ui.path: /docs
+
+api-info:
+  message: Toto je API systému Purkiáda.
+  version: 0.0.1-SNAPSHOT
+  docs: /docs
+
+keycloak:
+  server-url: ${KEYCLOAK_SERVER_URL:https://id.matejbucek.cz/auth}
+  realm: ${KEYCLOAK_REALM:Purkiada}
+  client-id: ${OAUTH_CLIENT_ID:backend}
+  client-secret: ${OAUTH_CLIENT_SECRET}
+
 spring:
   security:    
     oauth2:
