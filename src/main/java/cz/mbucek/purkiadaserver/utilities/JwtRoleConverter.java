@@ -13,7 +13,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-
+/**
+ * Converts roles from a JWT token.
+ * It maps both resource and realm roles.
+ * 
+ * @author Matěj Bucek
+ *
+ */
 public class JwtRoleConverter implements Converter<Jwt, AbstractAuthenticationToken>{
 
 	@Override

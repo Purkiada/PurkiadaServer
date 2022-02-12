@@ -7,7 +7,14 @@ import java.util.Map;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
 import cz.mbucek.purkiadaserver.utilities.JwtRoleConverter;
-
+/**
+ * This object makes it easier to work with Users.
+ * For instance, we can get this representation from JWT token an then assign this user
+ * to an Action and it will automatically convert to user's ID using {@link UserConverter}.
+ * 
+ * @author Matěj Bucek
+ *
+ */
 public class User {
 	private Map<String, Object> claims;
 	

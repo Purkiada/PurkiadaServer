@@ -6,6 +6,7 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import cz.mbucek.purkiadaserver.dtos.PublicUserDTO;
+import cz.mbucek.purkiadaserver.utilities.HashUtils;
 import cz.mbucek.purkiadaserver.utilities.View.Extended;
 import cz.mbucek.purkiadaserver.utilities.View.Public;
 
@@ -17,6 +18,13 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+/**
+ * Database model for an ActionSubmit.
+ * It is the user's submission for an {@link Action}
+ * 
+ * @author Matěj Bucek
+ *
+ */
 @Entity
 @Table(name = "action_submit")
 public class ActionSubmit {
@@ -33,6 +41,8 @@ public class ActionSubmit {
 	@Transient
 	@JsonView(Extended.class)
 	private PublicUserDTO publicUser;
+	@JsonView(Extended.class)
+	private String legacyAccessToken;
 	
 	public PublicUserDTO getPublicUser() {
 		return publicUser;
@@ -49,6 +59,7 @@ public class ActionSubmit {
 	public ActionSubmit(Action action, User user) {
 		this.action = action;
 		this.user = user;
+		this.legacyAccessToken = HashUtils.generateRandomPassword(10);
 	}
 	
 	public Long getId() {
@@ -68,5 +79,13 @@ public class ActionSubmit {
 	}
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public String getLegacyAccessToken() {
+		return legacyAccessToken;
+	}
+
+	public void setLegacyAccessToken(String legacyAccessToken) {
+		this.legacyAccessToken = legacyAccessToken;
 	}
 }

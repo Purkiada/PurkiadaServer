@@ -11,7 +11,11 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
-
+/**
+ * Provides simple configuration of CORS and Messages in this project.
+ * 
+ * @author Matěj Bucek
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer{
 	@Bean
@@ -47,6 +51,6 @@ public class WebConfig implements WebMvcConfigurer{
 	
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/**").allowedOrigins("http://localhost:4200", "https://purkiada.cz").allowedMethods("GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "PATCH");
+		registry.addMapping("/**").allowedOrigins("http://localhost:4200", "https://purkiada.cz", "https://api.purkiada.cz").allowedMethods("GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "PATCH");
 	}
 }

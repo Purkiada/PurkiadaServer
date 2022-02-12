@@ -1,10 +1,15 @@
 package cz.mbucek.purkiadaserver.services;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
+import java.util.stream.Stream;
 
-import org.keycloak.representations.idm.UserRepresentation;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,7 +18,6 @@ import org.springframework.web.util.HtmlUtils;
 import com.querydsl.core.types.Predicate;
 
 import cz.mbucek.purkiadaserver.dtos.ActionDTO;
-import cz.mbucek.purkiadaserver.dtos.PublicUserDTO;
 import cz.mbucek.purkiadaserver.entities.Action;
 import cz.mbucek.purkiadaserver.entities.ActionSubmit;
 import cz.mbucek.purkiadaserver.entities.QAction;
@@ -22,9 +26,10 @@ import cz.mbucek.purkiadaserver.entities.User;
 import cz.mbucek.purkiadaserver.entities.enums.ActionStatus;
 import cz.mbucek.purkiadaserver.repositories.ActionRepository;
 import cz.mbucek.purkiadaserver.repositories.ActionSubmitRepository;
+import cz.mbucek.purkiadaserver.utilities.HashUtils;
+import cz.mbucek.purkiadaserver.utilities.Pair;
 import cz.mbucek.purkiadaserver.utilities.exceptions.Asserts;
 import cz.mbucek.purkiadaserver.utilities.exceptions.InternalServerErrorException;
-import cz.mbucek.purkiadaserver.utilities.exceptions.NotFoundException;
 
 @Service
 public class ActionService {
@@ -48,7 +53,8 @@ public class ActionService {
 				actionDTO.actionStart(),
 				actionDTO.actionEnd(),
 				actionDTO.maxUsers(),
-				actionDTO.hidden()
+				actionDTO.hidden(),
+				actionDTO.authenticationType()
 				);
 		return actionRepository.save(action);
 	}
@@ -72,6 +78,8 @@ public class ActionService {
 			action.setMaxUsers(actionDTO.maxUsers());
 		if(actionDTO.hidden() != null)
 			action.setHidden(actionDTO.hidden());
+		if(actionDTO.authenticationType() != null)
+			action.setAuthenticationType(actionDTO.authenticationType());
 		return actionRepository.save(action);
 	}
 
@@ -96,6 +104,7 @@ public class ActionService {
 		Predicate predicate = QAction.action.id.eq(actionId);
 		return actionRepository.findOne(predicate);
 	}
+	
 
 	public Optional<Action> getActionByIdAndPublic(long actionId) {
 		Predicate predicate = QAction.action.id.eq(actionId).and(QAction.action.hidden.eq(false));
@@ -145,10 +154,7 @@ public class ActionService {
 	public List<ActionSubmit> getSubmitsByAction(Action action){
 		var submits = action.getSubmits();
 		submits.forEach(submit -> {
-			try {
-				UserRepresentation user = authService.getUserById(submit.getUser().getUserId());
-				submit.setPublicUser(new PublicUserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName()));
-			} catch (Exception e) {e.printStackTrace();}
+			submit.setPublicUser(authService.getUserById(submit.getUser().getUserId()));
 		});
 		return submits.stream().toList();
 	}
@@ -162,5 +168,81 @@ public class ActionService {
 		Asserts.notNull(submit, new InternalServerErrorException());
 		actionSubmitRepository.delete(submit);
 		return submit;
+	}
+
+	public ActionSubmit regenerateAccessToken(ActionSubmit actionSubmit) {
+		actionSubmit.setLegacyAccessToken(HashUtils.generateRandomPassword(10));
+		actionSubmitRepository.save(actionSubmit);
+		return actionSubmit;
+	}
+	
+	public byte[] exportActionToExcel(Action action) throws IOException {
+		var random = new Random();
+		var workbook = new XSSFWorkbook();
+		var informationSheet = workbook.createSheet("Informations");
+		var userSheet = workbook.createSheet("Users");
+		
+		var submits = getSubmitsByAction(action);
+		
+		var informations = List.of(
+				new Pair<String, Object>("ID", action.getId()),
+				new Pair<String, Object>("Name", action.getName()),
+				new Pair<String, Object>("SubName", action.getSubName()),
+				new Pair<String, Object>("Description", action.getDescription()),
+				new Pair<String, Object>("Registration start", action.getRegistrationStart()),
+				new Pair<String, Object>("Registration end", action.getRegistrationEnd()),
+				new Pair<String, Object>("Action start", action.getActionStart()),
+				new Pair<String, Object>("Action end", action.getActionEnd()),
+				new Pair<String, Object>("Maximal number of users", action.getMaxUsers()),
+				new Pair<String, Object>("Hidden", action.getHidden()),
+				new Pair<String, Object>("Authentication type", action.getAuthenticationType())
+				);
+		
+		for(int i = 0; i < informations.size(); i++) {
+			var pair = informations.get(i);
+			var row = informationSheet.createRow(i);
+			var cell = row.createCell(0);
+			cell.setCellValue(pair.key());
+			cell = row.createCell(1);
+			cell.setCellValue(pair.value().toString());
+		}
+		
+		var header = userSheet.createRow(0);
+		var headerCell = header.createCell(0);
+		headerCell.setCellValue("ID");
+		headerCell = header.createCell(1);
+		headerCell.setCellValue("First name");
+		headerCell = header.createCell(2);
+		headerCell.setCellValue("Last name");
+		headerCell = header.createCell(3);
+		headerCell.setCellValue("Email");
+		headerCell = header.createCell(4);
+		headerCell.setCellValue("Username");
+		headerCell = header.createCell(5);
+		headerCell.setCellValue("Password");
+		
+		for(int i = 1; i < submits.size() + 1; i++) {
+			var submit = submits.get(i - 1);
+			var user = submit.getPublicUser();
+			var row = userSheet.createRow(i);
+			var cell = row.createCell(0);
+			cell.setCellValue(user.id());
+			cell = row.createCell(1);
+			cell.setCellValue(user.firstname());
+			cell = row.createCell(2);
+			cell.setCellValue(user.lastname());
+			cell = row.createCell(3);
+			cell.setCellValue(user.email());
+			cell = row.createCell(4);
+			var username = user.firstname().substring(0, 2).toUpperCase() + user.lastname().substring(0, 2).toUpperCase() + random.nextInt(10, 20);
+			cell.setCellValue(Normalizer.normalize(username, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", ""));
+			cell = row.createCell(5);
+			cell.setCellValue(submit.getLegacyAccessToken());
+		}
+		
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		workbook.write(os);
+		workbook.close();
+		return os.toByteArray();
 	}
 }

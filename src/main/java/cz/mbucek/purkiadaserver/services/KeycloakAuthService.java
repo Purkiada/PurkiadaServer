@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
+import cz.mbucek.purkiadaserver.dtos.PublicUserDTO;
+
 @Service
 public class KeycloakAuthService implements AuthService{
 	
@@ -39,7 +41,14 @@ public class KeycloakAuthService implements AuthService{
 	private Keycloak keycloak;
 
 	@Override
-	public UserRepresentation getUserById(String id) {
-		return keycloak.realm(realm).users().get(id).toRepresentation();
+	public PublicUserDTO getUserById(String id) {
+		return toPublicUser(keycloak.realm(realm).users().get(id).toRepresentation());
+	}
+	
+	private PublicUserDTO toPublicUser(UserRepresentation user) {
+		try {
+			return new PublicUserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName());
+		} catch (Exception e) {e.printStackTrace();}
+		return null;
 	}
 }

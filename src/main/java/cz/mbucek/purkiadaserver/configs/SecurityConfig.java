@@ -7,6 +7,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 
 import cz.mbucek.purkiadaserver.utilities.JwtRoleConverter;
 
+
+/**
+ * Provides a basic security configuration for Purkiada.
+ * 
+ * @author Matěj Bucek
+ */
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter{
 
@@ -32,6 +38,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 				.antMatchers(HttpMethod.DELETE, "/v1/action/{actionId}")
 					.hasAnyRole("admin")
 				.antMatchers(HttpMethod.PATCH, "/v1/action/{actionId}")
+					.hasAnyRole("admin")
+				.antMatchers(HttpMethod.GET, "/{actionId}/export")
+					.hasAnyRole("admin")
+				.antMatchers(HttpMethod.POST, "/{actionId}/submit/{submitId}/regenerateAccessToken")
+					.hasAnyRole("admin")
+				.antMatchers("/v1/action/{actionId}/tasklist/**")
 					.hasAnyRole("admin")
 				.anyRequest()
 					.permitAll()

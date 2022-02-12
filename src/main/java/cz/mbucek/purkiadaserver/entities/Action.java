@@ -5,6 +5,8 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,10 +17,15 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 
+import cz.mbucek.purkiadaserver.dtos.AuthenticationType;
 import cz.mbucek.purkiadaserver.entities.enums.ActionStatus;
 import cz.mbucek.purkiadaserver.utilities.View.Extended;
 import cz.mbucek.purkiadaserver.utilities.View.Public;
 
+/**
+ * Database model for an Action.
+ * @author Matěj Bucek
+ */
 @Entity
 @Table(name = "actions")
 public class Action {
@@ -47,6 +54,11 @@ public class Action {
 	@JsonView(Extended.class)
 	@OneToMany(mappedBy = "action", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
 	private Set<ActionSubmit> submits;
+	@OneToMany(mappedBy = "action", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+	private Set<Tasklist> tasklists;
+	@JsonView(Public.class)
+	@Enumerated(EnumType.STRING)
+	private AuthenticationType authenticationType;
 
 	public Action() {
 
@@ -54,7 +66,7 @@ public class Action {
 
 	public Action(String name, String subName, String description, ZonedDateTime registrationStart,
 			ZonedDateTime registrationEnd, ZonedDateTime actionStart, ZonedDateTime actionEnd, Integer maxUsers,
-			Boolean hidden) {
+			Boolean hidden, AuthenticationType authenticationType) {
 		this.name = name;
 		this.subName = subName;
 		this.description = description;
@@ -64,6 +76,7 @@ public class Action {
 		this.actionEnd = actionEnd;
 		this.maxUsers = maxUsers;
 		this.hidden = hidden;
+		this.authenticationType = authenticationType;
 	}
 
 	public ActionStatus getStatus() {
@@ -159,5 +172,21 @@ public class Action {
 	}
 	public void setActionEnd(ZonedDateTime actionEnd) {
 		this.actionEnd = actionEnd;
+	}
+
+	public Set<Tasklist> getTasklists() {
+		return tasklists;
+	}
+
+	public void setTasklists(Set<Tasklist> tasklists) {
+		this.tasklists = tasklists;
+	}
+
+	public AuthenticationType getAuthenticationType() {
+		return authenticationType;
+	}
+
+	public void setAuthenticationType(AuthenticationType authenticationType) {
+		this.authenticationType = authenticationType;
 	}
 }
